@@ -58,7 +58,7 @@ var serverInfo = [
   //{url:"",safe:true}
 ]
 
-var d = ["shubbleYT","legndarycryst4"]
+var db = ["shubbleYT","legndarycryst4"]
 
 const express = require('express');
 const app = express();
