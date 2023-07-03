@@ -1,1 +1,293 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Empires | Account</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/assets/common.css">
+    <style>
+      #content{
+        display:flex;
+        flex-direction:row;
+        background:#eee;
+      }
+      body[theme=dark] #content{
+        background:#222;
+      }
 
+      .box{
+        border:1px solid gray;
+        border-radius:10px;
+        padding:20px;
+        background:white;
+        margin-bottom:40px;
+      }
+      body[theme=dark] .box{
+        background:#333;
+      }
+
+      #left{
+        width:20%;
+        padding-right:20px;
+      }
+      #right{
+        width:80%;
+      }
+
+      #settingsNav {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        border:1px solid #ddd;
+      }
+      body[theme=dark] #settingsNav{
+        border-color:#444;
+      }
+
+      /* Style the navigation links */
+      #settingsNav li a {
+        padding: 12px;
+        text-decoration: none;
+        color: black;
+        display: block
+      }
+      body[theme=dark] #settingsNav li a{
+        color:#ddd;
+      }
+
+      #settingsNav li a:hover {
+        background-color: #f8f8f8;
+      }
+      body[theme=dark] #settingsNav li a:hover {
+        background:#111;
+      }
+
+      #bioBox{
+        width:100%;
+        min-height:100px;
+        resize:vertical;
+      }
+
+      #capeList > div{
+        display:inline-block;
+        margin:5px;
+        border:1px solid gray;
+        padding:8px;
+        text-align:center;
+        cursor:pointer;
+      }
+      #capeList > div:hover{
+        border-color:black;
+      }
+      #capeList canvas{
+        margin:0 auto;
+      }
+    </style>
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-VRNT3CCCGH"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-VRNT3CCCGH');
+</script>
+  </head>
+  <body>
+    <div id="contentBG">
+      <div id="content">
+        <div id="left">
+          <h3 id="username">My account</h3><br><br>
+          <ul id="settingsNav">
+            <li><a href="#options">Options</a></li>
+            <li><a href="#pfp">Profile picture</a></li>
+            <li><a href="#bio">Bio</a></li>
+            <!--<li><a href="#skin">Skin</a></li>-->
+            <li><a href="#theme">Theme</a></li>
+          </ul>
+        </div>
+        <div id="right">
+          <div class="box" id="options">
+            <div id="profile"></div><br>
+            <button onclick="logout()">Logout</button>
+            <button onclick="deleteAccount()">Delete account</button><br><br>
+            <b>Username:</b>
+            <input disabled id="usernameInp" type="username" class="small"><br><br>
+            <button id="changePwd" onclick="changePwd()">Change password</button>
+            <div id="changePwdForm" style="display:none;"></div><br><br>
+            <button id="changeEmail" onclick="changeEmail()">Change Email</button>
+            <div id="changeEmailForm" style="display:none;"></div><br><br>
+            Profanity filter (<span id="profanityFilterOn"></span>): <div class="toggleSwitch" id="profanityFilter" onclick="toggleProfanityFilter()"><span></span></div>
+            Profanity filter removes bad words from text.
+          </div>
+          <div class="box" id="pfp">
+            <h3>Profile picture (pfp)</h3>
+            <img id="pfpImg" alt="your profile picture" style="width:100px;"><br><br>
+            <h3>Background</h3>
+            <img id="bg" alt="your background" style="width:400px;"><br><br>
+            <b>Change pfp/background</b>
+            <input placeholder="Enter url for image"><br>
+            <button onclick="changePfp()">Set as pfp</button>
+            <button onclick="changeBG()">Set as background</button>
+          </div>
+          <div class="box" id="bio">
+            <h3>Bio</h3>
+            <textarea id="bioBox" placeholder="Don't know what to write?&#10;Here are some ideas:&#10;Your hobbies, your age, and your name"></textarea><br>
+            <button onclick="saveBio()">Save</button>
+            <button onclick="promoteToAdmin()">promoteToAdmin</button>
+            <span id="bioInfo"></span>
+          </div>
+          
+          <div class="box" id="theme">
+            <h3>Theme</h3>
+            <input type="radio" id="themeNormal" name="theme" value="normal" onclick="setTheme(this.value)" class="notText">
+            <label for="themeNormal">Normal</label><br>
+            <input type="radio" id="themeDark" name="theme" value="dark" onclick="setTheme(this.value)" class="notText">
+            <label for="themeDark">Dark</label><br>
+            <input type="radio" id="themeGlow" name="theme" value="glow" onclick="setTheme(this.value)" class="notText">
+            <label for="themeGlow">Glow</label><br>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="/assets/common.js"></script>
+    <script>
+      fetch('/server/account',{
+        credentials: "include"
+      }).then(r => r.json()).then(data => {
+        document.querySelector('#username').innerHTML = data.username+"'s account (My account)"
+        document.querySelector("#usernameInp").value = data.username
+        document.querySelector("#profile").innerHTML = "<a href='user?user="+data.username+"'>My profile</a>"+(data.admin ? "<br>You are an admin" : "")
+        document.querySelector("#pfp #pfpImg").src = data.pfp
+        document.querySelector("#pfp #bg").src = data.bg4
+        document.querySelector("#bioBox").value = data.bio || ""
+
+        if(data.profanityFilter) document.querySelector("#profanityFilter").classList.add('checked')
+        else document.querySelector("#profanityFilter").classList.remove('checked')
+        document.querySelector("#profanityFilterOn").innerHTML = data.profanityFilter ? "on" : "off"
+      })
+
+      function logout(){
+        fetch("/server/logout", {credentials: 'include'}).then(() => location.href = "/").catch(alert)
+      }
+      function deleteAccount(){
+        fetch("/server/deleteAccount", {
+          method: "DELETE",
+          credentials: 'include'
+        }).then(() => location.href = "/").catch(alert)
+      }
+      function changePfp(){
+        var url = document.querySelector("#pfp input").value
+        fetch("/server/changePfp", {
+          method:"POST",
+          credentials:'include',
+          body: JSON.stringify({pfp:url})
+        }).then(r => r.json()).then(r => {
+          if(r.success){
+            document.querySelector("#pfp #pfpImg").src = r.pfp
+          }else alert(JSON.stringify(r.message))
+        })
+      }
+      function changeBG(){
+        var url = document.querySelector("#pfp input").value
+        fetch("/server/changePfp", {
+          method:"POST",
+          credentials:'include',
+          body: JSON.stringify({bg:url})
+        }).then(r => r.json()).then(r => {
+          if(r.success){
+            document.querySelector("#pfp #bg").src = r.bg
+          }else alert(JSON.stringify(r.message))
+        })
+      }
+      function changePwd(){
+        var btn = document.querySelector("#changePwd")
+        btn.style.display = "none"
+        var form = document.querySelector("#changePwdForm")
+        form.style.display = ""
+        form.innerHTML = `
+        <b>Enter your new password:</b>
+        <input id="newPwd" type="password" class="small">
+        <button id="changePwdBtn">Change password</button>
+        `
+        var ok = document.getElementById("changePwdBtn");
+        ok.onclick = () => {
+          form.style.display = "none"
+          fetch("/server/changePwd", {
+            method:"POST",
+            credentials:'include',
+            body: JSON.stringify({pwd: document.getElementById("newPwd").value})
+          }).then(r => r.json()).then(r => {
+            if(r.success){
+              btn.style.display = ""
+            }else alert(r.message)
+          })
+        }
+      }
+      function changeEmail(){
+        var btn = document.querySelector("#changeEmail")
+        btn.style.display = "none"
+        var form = document.querySelector("#changeEmailForm")
+        form.style.display = ""
+        form.innerHTML = `
+        <b>Enter your new email:</b>
+        <input id="newEmail" type="email" class="small">
+        <button id="changeEmailBtn">Change Email</button>
+        `
+        var ok = document.getElementById("changeEmailBtn");
+        ok.onclick = () => {
+          form.style.display = "none"
+          fetch("/server/changeEmail", {
+            method:"POST",
+            credentials:'include',
+            body: JSON.stringify({email: document.getElementById("newEmail").value})
+          }).then(r => r.json()).then(r => {
+            if(r.success){
+              btn.style.display = ""
+            }else alert(r.message)
+          })
+        }
+      }
+      function saveBio(){
+        document.querySelector("#bioInfo").innerHTML = ""
+        var v = document.querySelector("#bioBox").value
+        fetch("/server/changeBio", {
+          method:"POST",
+          credentials:'include',
+          body: JSON.stringify({bio:v})
+        }).then(r => r.json()).then(r => {
+          if(r.success){
+            document.querySelector("#bioInfo").innerHTML = "Success!"
+          }else document.querySelector("#bioInfo").innerHTML = r.message
+        })
+      }
+
+      function toggleProfanityFilter(){
+        var el = document.querySelector("#profanityFilter")
+        var on = !el.classList.contains("checked")
+        fetch("/server/changeProfanityFilter",{
+          credentials:'include',
+          method:"POST",
+          body:JSON.stringify({on})
+        }).then(r => r.json()).then(r => {
+          if(!r.success) return alert(r.message)
+          if(on) el.classList.add('checked')
+          else el.classList.remove('checked')
+          document.querySelector("#profanityFilterOn").innerHTML = on ? "on" : "off"
+        })
+      }
+      
+      async function setTheme(theme){
+        await localforage.setItem("theme", theme)
+        updateTheme(theme)
+      }
+      var theme
+      window.addEventListener("load", () => {
+        localforage.getItem("theme").then(r => {
+          theme = r || "normal"
+          document.querySelector("input[name=theme][value="+theme+"]").checked = true
+        })
+      })
+    </script>
+  </body>
+</html>
