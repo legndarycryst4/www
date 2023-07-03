@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Users</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/assets/common.css">
+    <style>
+      h1{
+        font-size:50px;
+        margin:0px;
+        text-align:center;
+      }
+
+      .hidden{display:none;}
+
+      #message{
+        width:100%;
+        height:200px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="contentBG">
+      <div id="content">
+        <h1>Users</h1>
+        <ul id="list"></ul>
+        <label for="search">Search: </label><input id="search" type="text"><br><br>
+        <div class="hidden" id="messageHolder">
+          <textarea id="message"></textarea>
+          <button id="messageSend">Send</button>
+        </div><br><br>
+        <div class="hidden" id="giveCapeHolder">
+          <input id="giveCapeInput" type="text">
+          <button id="giveCapeBtn">Give</button>
+        </div>
+      </div>
+    </div>
+    <script src="/assets/common.js"></script>
+    <script>
+      var list = document.getElementById("list"), search = document.getElementById("search"), searchTerm = "", users
+      fetch("/server/account",{
+        credentials:'include'
+      }).then(r => r.json()).then(r => {
+        if(!r.admin) document.getElementById("content").innerHTML = `<h1>Admin only page</h1>`
+      })
+      fetch("/server/users").then(r => r.json()).then(r => {
+        users = r.map(r => r.replace("user:",''))
+        updateList()
+      })
+      search.oninput = function(){
+        searchTerm = this.value
+        updateList()
+      }
+      function updateList(){
+        if(!users) return
+        var html = "", count = 0
+        for(var i of users){
+          if(!i.toLowerCase().includes(searchTerm.toLowerCase())) continue
+          html += `<li>${i} | 
+<a onclick="messageUser(unescape('${escape(i)}'))">Send Message</a> | 
+<a onclick="giveCape(unescape('${escape(i)}'))">Give cape</a>
+</li>
+`
+          count++
+          if(count > 50 && users.length > count){
+            html += "..."
+            break
+          }
+        }
+        list.innerHTML = html
+      }
+
+      function messageUser(user){
+        document.getElementById("messageHolder").classList.remove("hidden")
+        document.getElementById("messageSend").onclick = function(){
+          var t = document.getElementById("message").value
+          fetch("/admin/messageUser/"+user, {
+            credentials: 'include',
+            method: "POST",
+            body: JSON.stringify({message: t})
+          }).then(r => r.json()).then(r => {
+            if(r.success){
+              document.getElementById("messageHolder").classList.add("hidden")
+            }else{
+              alert(r.message)
+            }
+          })
+        }
+      }
+      function giveCape(user){
+        document.getElementById("giveCapeHolder").classList.remove("hidden")
+        document.getElementById("giveCapeBtn").onclick = function(){
+          var t = document.getElementById("giveCapeInput").value
+          fetch("/admin/giveCape/"+user, {
+            credentials: 'include',
+            method: "POST",
+            body: JSON.stringify({name: t})
+          }).then(r => r.json()).then(r => {
+            if(r.success){
+              document.getElementById("giveCapeHolder").classList.add("hidden")
+            }else{
+              alert(r.message)
+            }
+          })
+        }
+      }
+    </script>
+  </body>
+</html>
