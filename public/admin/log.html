@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Log</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/assets/common.css">
+    <style>
+      #log{
+        width:100%;
+      }
+      .function{color:purple;}
+      .array{color:red;}
+      .object{color:red;}
+      .objectProperty{color:blue;}
+      body[theme=dark] .objectProperty{color:#55f;}
+      .number{color:orange;}
+      .minekhanactivity{background:yellow;}
+      body[theme=dark] .minekhanactivity{background:#980;}
+      .postactivity{background:orange;}
+      body[theme=dark] .postactivity{background:#850;}
+      .capeactivity{background:#88f;}
+      .useractivity{background:lightgreen;}
+      body[theme=dark] .useractivity{background:green;}
+      .console{color:orange; margin-right:15px;}
+      .minekhan2activity{background:red;}
+      body[theme=dark] .minekhan2activity{background:#800;}
+    </style>
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-VRNT3CCCGH"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-VRNT3CCCGH');
+</script>
+  </head>
+  <body>
+    <div id="contentBG">
+      <div id="content">
+        <h1>Log</h1>
+        <div id="log"></div><br><br>
+        <h3>Log options</h3>
+        <input type="checkbox" id="minekhan" checked="true">
+        <label for="minekhan">Show Empires activity</label>
+        <br>
+        <button onclick="load()">Reload</button>
+      </div>
+    </div>
+    <script src="/assets/common.js"></script>
+    <script>
+      var log = document.querySelector("#log")
+      function load(){
+        var options = "?"
+        if(!document.querySelector("#empires").checked) options += "nominekhan=true"
+        fetch("/log"+options).then(r=>r.text()).then(r => {
+          log.innerHTML = r
+        }).catch(e => {
+          log.innerHTML = e
+        })
+      }
+      load()
+    </script>
+  </body>
+</html>
